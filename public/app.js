@@ -2,6 +2,21 @@ const app = document.querySelector("#app");
 const SESSION_KEY = "quickfire-session";
 const CHOICE_MARKS = ["A", "B", "C", "D"];
 const CHOICE_COLORS = ["#8367ff", "#ff6f61", "#4ed8e6", "#ffcf5a"];
+const SPORTS = ["NFL", "NBA", "MLB", "NHL"];
+const PACKS = [
+  { id: "nfl-weekly", sport: "NFL", title: "Weekly Huddle", edition: "Week 4", description: "Rules, positions, and Sunday essentials.", tone: "orange" },
+  { id: "nfl-gameday", sport: "NFL", title: "Game Day Challenge", edition: "Sunday", description: "A fast pregame test for the whole room.", tone: "purple" },
+  { id: "nfl-history", sport: "NFL", title: "Gridiron Classics", edition: "Legends", description: "Big-game history and football vocabulary.", tone: "blue" },
+  { id: "nba-weekly", sport: "NBA", title: "Weekly Tipoff", edition: "This week", description: "Court rules, scoring, and basketball IQ.", tone: "orange" },
+  { id: "nba-gameday", sport: "NBA", title: "Prime Time Hoops", edition: "Game night", description: "A quick warmup before the opening tip.", tone: "purple" },
+  { id: "nba-history", sport: "NBA", title: "Hardwood Legends", edition: "Legends", description: "Championship language and iconic fundamentals.", tone: "blue" },
+  { id: "mlb-roundup", sport: "MLB", title: "September 29 Roundup", edition: "Sep 29", description: "A late-season baseball knowledge check.", tone: "orange" },
+  { id: "mlb-postseason", sport: "MLB", title: "Postseason Push", edition: "October", description: "Playoff terms, scoring, and diamond basics.", tone: "purple" },
+  { id: "mlb-classics", sport: "MLB", title: "Ballpark Classics", edition: "Legends", description: "Timeless rules and baseball vocabulary.", tone: "blue" },
+  { id: "nhl-weekly", sport: "NHL", title: "Weekly Faceoff", edition: "This week", description: "Rink rules, scoring, and hockey essentials.", tone: "blue" },
+  { id: "nhl-rivalry", sport: "NHL", title: "Rivalry Night", edition: "Game night", description: "Fast-paced trivia before the puck drops.", tone: "orange" },
+  { id: "nhl-cup", sport: "NHL", title: "Cup Classics", edition: "Legends", description: "Championship traditions and hockey terms.", tone: "purple" },
+];
 
 let session = null;
 let gameState = null;
@@ -9,6 +24,8 @@ let eventSource = null;
 let countdownTimer = null;
 let connectionStatus = "connected";
 let renderedPhase = null;
+let selectedSport = "MLB";
+let selectedPackId = null;
 
 function escapeHtml(value) {
   return String(value)
@@ -70,42 +87,84 @@ function page(content, inGame = false) {
 function showHome(message = "") {
   clearInterval(countdownTimer);
   renderedPhase = null;
+  const sportPacks = PACKS.filter((pack) => pack.sport === selectedSport);
+  const selectedPack = PACKS.find((pack) => pack.id === selectedPackId);
   app.innerHTML = page(`
-    <section>
-      <div class="pixel-hero home-hero" role="img" aria-label="Pixel art autumn sports park with football, baseball, basketball, and hockey areas">
-        <div class="hero-copy">
-          <p class="eyebrow">Fall league · 2–8 players</p>
-          <h1>Think fast.<br>Win the season.</h1>
-          <p class="lede">Ten questions. Fifteen seconds each. Bring your sharpest lineup and make a run at the title.</p>
-          <div class="sport-ticker" aria-hidden="true"><span>Football</span><span>Baseball</span><span>Basketball</span><span>Hockey</span></div>
+    <section class="sports-hub">
+      <div class="hub-intro">
+        <div>
+          <p class="eyebrow">The trivia clubhouse</p>
+          <h1>Pick your sport.<br>Own the board.</h1>
+          <p class="lede">Choose a weekly roundup, a game-night challenge, or a trip through the record books.</p>
         </div>
-      </div>
-      <div class="home-grid">
-        <form class="card action-card create-card" id="create-form">
-          <p class="eyebrow">Start a new game</p>
-          <h2>Create a room</h2>
-          <div class="field">
-            <label for="create-name">Your display name</label>
-            <input id="create-name" name="name" maxlength="18" autocomplete="nickname" placeholder="Quizmaster" required />
+        <form class="card quick-join" id="join-form">
+          <div class="quick-join-copy">
+            <p class="eyebrow">Live room</p>
+            <h2>Join by code</h2>
           </div>
-          <button class="button full" type="submit">Create room</button>
-          <p class="error" id="create-error">${escapeHtml(message)}</p>
-        </form>
-        <form class="card action-card" id="join-form">
-          <p class="eyebrow">Have a room code?</p>
-          <h2>Join the game</h2>
-          <div class="field">
-            <label for="room-code">6-character room code</label>
-            <input class="code-input" id="room-code" name="code" maxlength="6" autocomplete="off" placeholder="ABC123" required />
+          <div class="join-fields">
+            <div class="field compact-field">
+              <label for="room-code">Room code</label>
+              <input class="code-input" id="room-code" name="code" maxlength="6" autocomplete="off" placeholder="ABC123" required />
+            </div>
+            <div class="field compact-field">
+              <label for="join-name">Your name</label>
+              <input id="join-name" name="name" maxlength="18" autocomplete="nickname" placeholder="Rookie" required />
+            </div>
+            <button class="button secondary join-button" type="submit">Join</button>
           </div>
-          <div class="field">
-            <label for="join-name">Your display name</label>
-            <input id="join-name" name="name" maxlength="18" autocomplete="nickname" placeholder="Fast thinker" required />
-          </div>
-          <button class="button secondary full" type="submit">Join room</button>
           <p class="error" id="join-error"></p>
         </form>
       </div>
+
+      <nav class="sport-tabs" aria-label="Choose a sport">
+        ${SPORTS.map((sport) => `<button class="sport-tab ${sport === selectedSport ? "active" : ""}" type="button" data-sport="${sport}" aria-pressed="${sport === selectedSport}">${sport}</button>`).join("")}
+      </nav>
+
+      <div class="edition-strip" aria-label="${selectedSport} trivia editions">
+        ${sportPacks.map((pack, index) => `
+          <button class="edition-chip ${pack.id === selectedPackId ? "active" : ""}" type="button" data-pack="${pack.id}">
+            <span>${escapeHtml(pack.edition)}</span>
+            <strong>${index === 0 ? "Roundup" : index === 1 ? "Game" : "History"}</strong>
+          </button>`).join("")}
+      </div>
+
+      <div class="hub-section-heading">
+        <div><p class="eyebrow">${selectedSport} lineup</p><h2>Choose your challenge</h2></div>
+        <span class="pack-count">${sportPacks.length} packs · 10 questions each</span>
+      </div>
+
+      <div class="pack-grid">
+        ${sportPacks.map((pack, index) => `
+          <article class="pack-card card ${pack.tone} ${pack.id === selectedPackId ? "selected" : ""}">
+            <div class="pack-card-top">
+              <span class="sport-badge">${pack.sport}</span>
+              <span class="pack-edition">${escapeHtml(pack.edition)}</span>
+            </div>
+            <div class="matchup-mark" aria-hidden="true"><span>${index + 1}</span><i></i><span>10</span></div>
+            <h3>${escapeHtml(pack.title)}</h3>
+            <p>${escapeHtml(pack.description)}</p>
+            <button class="button ${index === 0 ? "" : "secondary"} full" type="button" data-pack="${pack.id}">${pack.id === selectedPackId ? "Selected" : "Host this quiz"}</button>
+          </article>`).join("")}
+      </div>
+
+      ${selectedPack ? `
+        <section class="card host-panel" id="host-panel">
+          <div>
+            <p class="eyebrow">Selected · ${selectedPack.sport}</p>
+            <h2>${escapeHtml(selectedPack.title)}</h2>
+            <p class="waiting-note">Create a private room, share the code, and play this 10-question pack together.</p>
+          </div>
+          <form id="create-form" class="host-form">
+            <input type="hidden" name="packId" value="${selectedPack.id}" />
+            <div class="field compact-field">
+              <label for="create-name">Host display name</label>
+              <input id="create-name" name="name" maxlength="18" autocomplete="nickname" placeholder="Commissioner" required />
+            </div>
+            <button class="button" type="submit">Create room</button>
+            <p class="error" id="create-error">${escapeHtml(message)}</p>
+          </form>
+        </section>` : ""}
     </section>
   `);
 
@@ -113,7 +172,21 @@ function showHome(message = "") {
     event.target.value = event.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "");
   });
 
-  document.querySelector("#create-form").addEventListener("submit", createRoom);
+  document.querySelectorAll("[data-sport]").forEach((button) => {
+    button.addEventListener("click", () => {
+      selectedSport = button.dataset.sport;
+      selectedPackId = null;
+      showHome();
+    });
+  });
+  document.querySelectorAll("[data-pack]").forEach((button) => {
+    button.addEventListener("click", () => {
+      selectedPackId = button.dataset.pack;
+      showHome();
+      requestAnimationFrame(() => document.querySelector("#host-panel")?.scrollIntoView({ behavior: "smooth", block: "center" }));
+    });
+  });
+  document.querySelector("#create-form")?.addEventListener("submit", createRoom);
   document.querySelector("#join-form").addEventListener("submit", joinRoom);
 }
 
@@ -128,7 +201,7 @@ async function createRoom(event) {
   try {
     const data = await api("/api/rooms", {
       method: "POST",
-      body: JSON.stringify({ name: form.elements.name.value }),
+      body: JSON.stringify({ name: form.elements.name.value, packId: form.elements.packId.value }),
     });
     saveSession({ roomCode: data.roomCode, playerId: data.playerId, token: data.token });
     gameState = data.state;
@@ -225,7 +298,10 @@ function renderLobby() {
         </div>
         <span class="tag">${gameState.playerCount}/8 joined</span>
       </div>
-      <div class="pixel-hero lobby-hero" role="img" aria-label="Pixel art autumn sports park at sunset"></div>
+      <div class="lobby-pack-banner">
+        <span class="sport-badge">${escapeHtml(gameState.pack.sport)}</span>
+        <div><p class="eyebrow">${escapeHtml(gameState.pack.edition)}</p><h2>${escapeHtml(gameState.pack.title)}</h2></div>
+      </div>
       <div class="lobby-grid">
         <section class="card panel-pad">
           <p class="eyebrow">Players</p>
@@ -234,7 +310,7 @@ function renderLobby() {
         </section>
         <aside class="card panel-pad">
           <p class="eyebrow">Up next</p>
-          <h2>10 quick questions</h2>
+          <h2>${escapeHtml(gameState.pack.title)}</h2>
           <p class="waiting-note">You’ll have 15 seconds for each question. Correct answers earn more points when they’re fast.</p>
           ${gameState.me.isHost
             ? `<button class="button full" data-action="start" ${canStart ? "" : "disabled"}>${canStart ? "Start game" : "Waiting for a player"}</button>`
@@ -273,7 +349,7 @@ function answerButtons(reveal = false) {
 function questionHeader(includeTimer = true) {
   return `
     <div class="pixel-hero question-art" role="img" aria-label="Pixel art autumn sports park">
-      <div class="sport-ticker" aria-hidden="true"><span>Game ${gameState.question.number}</span><span>Fall series</span></div>
+      <div class="sport-ticker" aria-hidden="true"><span>${escapeHtml(gameState.pack.sport)}</span><span>${escapeHtml(gameState.pack.title)}</span></div>
     </div>
     <div class="game-meta">
       <p class="eyebrow">Question ${gameState.question.number} of ${gameState.question.total}</p>
@@ -339,7 +415,7 @@ function renderFinished() {
       <div class="pixel-hero arena-strip" role="img" aria-label="Pixel art autumn championship grounds"></div>
       <p class="eyebrow">Game complete</p>
       <h1 style="margin-inline:auto">${top[0]?.id === gameState.me.id ? "You won the room." : `${escapeHtml(top[0]?.name || "Nobody")} takes it.`}</h1>
-      <p class="lede" style="margin-inline:auto">Ten questions down. Here’s how everyone finished.</p>
+      <p class="lede" style="margin-inline:auto">${escapeHtml(gameState.pack.title)} is complete. Here’s how everyone finished.</p>
       <div class="podium">
         ${ordered.map((player) => `
           <div class="podium-place ${player.rank === 1 ? "first" : ""}">

@@ -235,6 +235,290 @@ h3 {
   gap: 18px;
 }
 
+.sports-hub {
+  display: grid;
+  gap: 24px;
+}
+
+.hub-intro {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(360px, 0.72fr);
+  gap: 28px;
+  align-items: end;
+  border-bottom: 3px solid #20295c;
+  padding: clamp(20px, 4vw, 42px) 0 34px;
+}
+
+.hub-intro h1 {
+  margin-bottom: 12px;
+  font-size: clamp(2.4rem, 6vw, 5.4rem);
+}
+
+.hub-intro .lede {
+  margin-bottom: 0;
+}
+
+.quick-join {
+  padding: 22px;
+}
+
+.quick-join h2 {
+  margin-bottom: 14px;
+  font-size: 1.45rem;
+}
+
+.join-fields {
+  display: grid;
+  grid-template-columns: minmax(120px, 0.8fr) minmax(140px, 1fr) auto;
+  gap: 10px;
+  align-items: end;
+}
+
+.compact-field {
+  margin-bottom: 0;
+}
+
+.join-button {
+  min-width: 96px;
+}
+
+.sport-tabs {
+  display: flex;
+  gap: clamp(18px, 4vw, 48px);
+  overflow-x: auto;
+  border-bottom: 3px solid #20295c;
+  padding: 0 2px 13px;
+  scrollbar-width: none;
+}
+
+.sport-tabs::-webkit-scrollbar,
+.edition-strip::-webkit-scrollbar {
+  display: none;
+}
+
+.sport-tab {
+  position: relative;
+  flex: 0 0 auto;
+  padding: 8px 2px;
+  cursor: pointer;
+  color: #b9bdd2;
+  background: transparent;
+  font: 900 clamp(1.4rem, 4vw, 2.4rem)/1 var(--display);
+  letter-spacing: -0.06em;
+}
+
+.sport-tab::after {
+  position: absolute;
+  right: 0;
+  bottom: -16px;
+  left: 0;
+  height: 5px;
+  background: transparent;
+  content: "";
+}
+
+.sport-tab:hover,
+.sport-tab.active {
+  color: var(--cream);
+}
+
+.sport-tab.active {
+  color: var(--pumpkin);
+  text-shadow: 3px 3px 0 var(--plum);
+}
+
+.sport-tab.active::after {
+  background: var(--pumpkin);
+}
+
+.edition-strip {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding: 0 0 4px;
+  scrollbar-width: none;
+}
+
+.edition-chip {
+  display: grid;
+  min-width: 128px;
+  flex: 1 0 128px;
+  gap: 3px;
+  border: 2px solid #26316b;
+  padding: 12px 14px;
+  cursor: pointer;
+  color: #aeb3ca;
+  background: #0e1437;
+  text-align: left;
+}
+
+.edition-chip span {
+  font-size: 0.82rem;
+  font-weight: 750;
+}
+
+.edition-chip strong {
+  color: var(--cream);
+  font: 900 0.8rem/1.3 var(--display);
+  text-transform: uppercase;
+}
+
+.edition-chip:hover,
+.edition-chip.active {
+  border-color: var(--pumpkin);
+  background: #2c2058;
+  box-shadow: 3px 3px 0 var(--plum);
+}
+
+.hub-section-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 20px;
+  margin-top: 8px;
+}
+
+.hub-section-heading h2 {
+  margin-bottom: 0;
+}
+
+.pack-count {
+  color: #aeb3ca;
+  font-size: 0.9rem;
+  font-weight: 800;
+}
+
+.pack-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.pack-card {
+  display: grid;
+  min-height: 330px;
+  grid-template-rows: auto auto auto 1fr auto;
+  gap: 16px;
+  padding: 22px;
+  background:
+    repeating-linear-gradient(135deg, transparent 0 16px, rgb(255 255 255 / 0.025) 16px 32px),
+    linear-gradient(180deg, #22306e, #151d4b);
+}
+
+.pack-card.orange {
+  border-top: 8px solid var(--orange);
+}
+
+.pack-card.purple {
+  border-top: 8px solid #8d58b2;
+}
+
+.pack-card.blue {
+  border-top: 8px solid #479ad1;
+}
+
+.pack-card.selected {
+  outline: 4px solid var(--gold);
+  outline-offset: -8px;
+}
+
+.pack-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.sport-badge {
+  display: inline-grid;
+  min-width: 56px;
+  min-height: 30px;
+  place-items: center;
+  border: 2px solid var(--night);
+  padding: 5px 8px;
+  color: var(--night);
+  background: var(--gold);
+  box-shadow: 2px 2px 0 var(--orange);
+  font: 900 0.72rem/1 var(--display);
+}
+
+.pack-edition {
+  color: var(--paper);
+  font-size: 0.82rem;
+  font-weight: 850;
+}
+
+.matchup-mark {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 10px;
+  align-items: center;
+  color: var(--cream);
+  font: 900 1.55rem/1 var(--display);
+}
+
+.matchup-mark i {
+  height: 3px;
+  background: repeating-linear-gradient(90deg, var(--orange) 0 9px, transparent 9px 14px);
+}
+
+.pack-card h3 {
+  margin: 0;
+  font-size: clamp(1.2rem, 2.2vw, 1.65rem);
+  line-height: 1.25;
+  text-shadow: 2px 2px 0 var(--plum);
+}
+
+.pack-card p {
+  margin: 0;
+  color: #d3d4df;
+  line-height: 1.55;
+}
+
+.host-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(340px, 0.8fr);
+  gap: 28px;
+  align-items: center;
+  border-left: 9px solid var(--pumpkin);
+  padding: clamp(22px, 4vw, 34px);
+}
+
+.host-panel h2 {
+  margin-bottom: 8px;
+}
+
+.host-form {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) auto;
+  gap: 12px;
+  align-items: end;
+}
+
+.host-form .error {
+  grid-column: 1 / -1;
+}
+
+.lobby-pack-banner {
+  display: flex;
+  min-height: 150px;
+  align-items: center;
+  gap: 20px;
+  margin: 22px 0 18px;
+  border: var(--border);
+  padding: clamp(22px, 4vw, 36px);
+  background:
+    linear-gradient(90deg, rgb(9 13 36 / 0.88), rgb(9 13 36 / 0.35)),
+    url("/assets/autumn-sports-park.png") center 53% / cover no-repeat;
+  box-shadow: var(--pixel-shadow);
+  image-rendering: pixelated;
+}
+
+.lobby-pack-banner h2,
+.lobby-pack-banner .eyebrow {
+  margin-bottom: 0;
+}
+
 .card {
   border: var(--border);
   border-radius: 4px;
@@ -890,6 +1174,15 @@ input::placeholder {
     grid-template-columns: 1fr;
   }
 
+  .hub-intro,
+  .host-panel {
+    grid-template-columns: 1fr;
+  }
+
+  .pack-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
   .home-grid {
     max-width: 720px;
     margin-inline: auto;
@@ -909,6 +1202,55 @@ input::placeholder {
   .home-grid,
   .lobby-grid {
     grid-template-columns: 1fr;
+  }
+
+  .hub-intro,
+  .host-panel {
+    grid-template-columns: 1fr;
+  }
+
+  .hub-intro {
+    gap: 20px;
+    padding-top: 14px;
+  }
+
+  .join-fields {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .join-button {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+
+  .sport-tabs {
+    gap: 26px;
+  }
+
+  .sport-tab {
+    font-size: 1.55rem;
+  }
+
+  .hub-section-heading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .pack-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .pack-card {
+    min-height: 290px;
+  }
+
+  .host-form {
+    grid-template-columns: 1fr;
+  }
+
+  .host-form .button {
+    width: 100%;
   }
 
   .topbar {
@@ -1009,6 +1351,30 @@ input::placeholder {
   .action-card,
   .panel-pad {
     padding: 18px 14px;
+  }
+
+  .quick-join,
+  .host-panel,
+  .pack-card {
+    padding: 18px 14px;
+  }
+
+  .join-fields {
+    grid-template-columns: 1fr;
+  }
+
+  .join-button {
+    grid-column: auto;
+  }
+
+  .edition-chip {
+    min-width: 116px;
+    flex-basis: 116px;
+  }
+
+  .lobby-pack-banner {
+    align-items: flex-start;
+    flex-direction: column;
   }
 
   .sport-ticker span:nth-child(n + 3) {
