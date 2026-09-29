@@ -400,7 +400,7 @@ function createGameServer(options = {}) {
           request.on("close", () => {
             clearInterval(heartbeat);
             room.listeners.delete(listener);
-            if (!room.listenersHas?.(player.id)) {
+            if (![...room.listeners].some((active) => active.player.id === player.id)) {
               player.connected = false;
               broadcast(room);
             }
