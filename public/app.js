@@ -8,6 +8,7 @@ let gameState = null;
 let eventSource = null;
 let countdownTimer = null;
 let connectionStatus = "connected";
+let renderedPhase = null;
 
 function escapeHtml(value) {
   return String(value)
@@ -50,7 +51,7 @@ function page(content, inGame = false) {
     <main class="page">
       <header class="topbar">
         <div class="brand" aria-label="Quickfire Trivia">
-          <span class="brand-mark" aria-hidden="true">ϟ</span>
+          <span class="brand-mark" aria-hidden="true">Q</span>
           <span class="brand-word">Quickfire</span>
         </div>
         ${inGame ? `
@@ -68,11 +69,17 @@ function page(content, inGame = false) {
 
 function showHome(message = "") {
   clearInterval(countdownTimer);
+  renderedPhase = null;
   app.innerHTML = page(`
     <section>
-      <p class="eyebrow">Real-time trivia · 2–8 players</p>
-      <h1>Think fast.<br>Claim the board.</h1>
-      <p class="lede">Ten questions. Fifteen seconds each. Bring your sharpest friends and see who knows it first.</p>
+      <div class="pixel-hero home-hero" role="img" aria-label="Pixel art autumn sports park with football, baseball, basketball, and hockey areas">
+        <div class="hero-copy">
+          <p class="eyebrow">Fall league · 2–8 players</p>
+          <h1>Think fast.<br>Win the season.</h1>
+          <p class="lede">Ten questions. Fifteen seconds each. Bring your sharpest lineup and make a run at the title.</p>
+          <div class="sport-ticker" aria-hidden="true"><span>Football</span><span>Baseball</span><span>Basketball</span><span>Hockey</span></div>
+        </div>
+      </div>
       <div class="home-grid">
         <form class="card action-card create-card" id="create-form">
           <p class="eyebrow">Start a new game</p>
@@ -218,6 +225,7 @@ function renderLobby() {
         </div>
         <span class="tag">${gameState.playerCount}/8 joined</span>
       </div>
+      <div class="pixel-hero lobby-hero" role="img" aria-label="Pixel art autumn sports park at sunset"></div>
       <div class="lobby-grid">
         <section class="card panel-pad">
           <p class="eyebrow">Players</p>
@@ -264,6 +272,9 @@ function answerButtons(reveal = false) {
 
 function questionHeader(includeTimer = true) {
   return `
+    <div class="pixel-hero question-art" role="img" aria-label="Pixel art autumn sports park">
+      <div class="sport-ticker" aria-hidden="true"><span>Game ${gameState.question.number}</span><span>Fall series</span></div>
+    </div>
     <div class="game-meta">
       <p class="eyebrow">Question ${gameState.question.number} of ${gameState.question.total}</p>
       ${gameStats()}
@@ -309,6 +320,7 @@ function renderReveal() {
 function renderLeaderboard() {
   return page(`
     <section class="card panel-pad leader-card">
+      <div class="pixel-hero arena-strip" role="img" aria-label="Pixel art autumn sports park scoreboard view"></div>
       <div class="center">
         <p class="eyebrow">After question ${gameState.question.number}</p>
         <h2>${gameState.question.number === gameState.question.total ? "Final scores are in" : "Here’s the board"}</h2>
@@ -324,6 +336,7 @@ function renderFinished() {
   const ordered = [top[1], top[0], top[2]].filter(Boolean);
   return page(`
     <section class="game-shell center">
+      <div class="pixel-hero arena-strip" role="img" aria-label="Pixel art autumn championship grounds"></div>
       <p class="eyebrow">Game complete</p>
       <h1 style="margin-inline:auto">${top[0]?.id === gameState.me.id ? "You won the room." : `${escapeHtml(top[0]?.name || "Nobody")} takes it.`}</h1>
       <p class="lede" style="margin-inline:auto">Ten questions down. Here’s how everyone finished.</p>
@@ -351,6 +364,8 @@ function renderFinished() {
 function renderGame() {
   clearInterval(countdownTimer);
   if (!gameState) return;
+  const phaseChanged = renderedPhase !== gameState.phase;
+  renderedPhase = gameState.phase;
   const renderers = {
     lobby: renderLobby,
     question: renderQuestion,
@@ -361,6 +376,7 @@ function renderGame() {
   app.innerHTML = (renderers[gameState.phase] || renderLobby)();
   bindGameActions();
   startCountdown();
+  if (phaseChanged) requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: "smooth" }));
 }
 
 function bindGameActions() {
