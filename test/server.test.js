@@ -57,3 +57,30 @@ test("two players can create, join, answer, and reach the reveal", async (contex
   assert.ok(state.me.lastPoints >= 600 && state.me.lastPoints <= 1000);
   assert.deepEqual(state.answerCounts, [1, 1, 0, 0]);
 });
+
+test("a selected sport pack is shared with every player in the room", async (context) => {
+  const server = createGameServer({ durations: { question: 500, reveal: 250, leaderboard: 250 } });
+  server.listen(0, "127.0.0.1");
+  await once(server, "listening");
+  context.after(() => server.close());
+
+  const { port } = server.address();
+  const baseUrl = `http://127.0.0.1:${port}`;
+  const host = await post(baseUrl, "/api/rooms", { name: "Casey", packId: "mlb-roundup" });
+  const guest = await post(baseUrl, `/api/rooms/${host.roomCode}/join`, { name: "Jordan" });
+
+  assert.equal(host.state.pack.title, "September 29 Roundup");
+  assert.equal(guest.state.pack.sport, "MLB");
+
+  await post(baseUrl, `/api/rooms/${host.roomCode}/start`, {
+    playerId: host.playerId,
+    token: host.token,
+  });
+  const query = new URLSearchParams({ playerId: guest.playerId, token: guest.token });
+  const response = await fetch(`${baseUrl}/api/rooms/${host.roomCode}?${query}`);
+  const state = await response.json();
+
+  assert.equal(state.phase, "question");
+  assert.match(state.question.category, /^MLB/);
+  assert.equal(state.question.total, 10);
+});

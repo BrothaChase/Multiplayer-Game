@@ -14,6 +14,8 @@ Open [http://localhost:3000](http://localhost:3000) in a browser. To test multip
 
 ## Core game loop
 
+- Browse NFL, NBA, MLB, and NHL trivia sections.
+- Choose from weekly, game-night, dated, and history quiz packs.
 - Create a room and share its six-character code.
 - Join with 2–8 unique display names.
 - Answer 10 multiple-choice questions with a 15-second timer.
