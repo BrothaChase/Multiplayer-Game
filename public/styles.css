@@ -1204,14 +1204,43 @@ input::placeholder {
     grid-template-columns: 1fr;
   }
 
-  .hub-intro,
-  .host-panel {
-    grid-template-columns: 1fr;
+  .hub-intro {
+    display: contents;
   }
 
-  .hub-intro {
-    gap: 20px;
-    padding-top: 14px;
+  .hub-intro > div {
+    order: 0;
+    border-bottom: 3px solid #20295c;
+    padding: 14px 0 18px;
+  }
+
+  .hub-intro h1 {
+    font-size: clamp(2.2rem, 11vw, 3.6rem);
+  }
+
+  .sport-tabs {
+    order: 1;
+  }
+
+  .edition-strip {
+    order: 2;
+  }
+
+  .quick-join {
+    order: 3;
+  }
+
+  .hub-section-heading {
+    order: 4;
+  }
+
+  .pack-grid {
+    order: 5;
+  }
+
+  .host-panel {
+    order: 6;
+    grid-template-columns: 1fr;
   }
 
   .join-fields {
@@ -1360,11 +1389,11 @@ input::placeholder {
   }
 
   .join-fields {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 1fr;
   }
 
   .join-button {
-    grid-column: auto;
+    grid-column: 1 / -1;
   }
 
   .edition-chip {
