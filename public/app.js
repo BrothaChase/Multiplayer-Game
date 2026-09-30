@@ -3,19 +3,24 @@ const SESSION_KEY = "quickfire-session";
 const CHOICE_MARKS = ["A", "B", "C", "D"];
 const CHOICE_COLORS = ["#8367ff", "#ff6f61", "#4ed8e6", "#ffcf5a"];
 const SPORTS = ["NFL", "NBA", "MLB", "NHL"];
+const CATEGORY_LABELS = {
+  roundup: "Weekly roundup",
+  game: "Game day",
+  history: "History & legends",
+};
 const PACKS = [
-  { id: "nfl-weekly", sport: "NFL", title: "Weekly Huddle", edition: "Week 4", description: "Rules, positions, and Sunday essentials.", tone: "orange" },
-  { id: "nfl-gameday", sport: "NFL", title: "Game Day Challenge", edition: "Sunday", description: "A fast pregame test for the whole room.", tone: "purple" },
-  { id: "nfl-history", sport: "NFL", title: "Gridiron Classics", edition: "Legends", description: "Big-game history and football vocabulary.", tone: "blue" },
-  { id: "nba-weekly", sport: "NBA", title: "Weekly Tipoff", edition: "This week", description: "Court rules, scoring, and basketball IQ.", tone: "orange" },
-  { id: "nba-gameday", sport: "NBA", title: "Prime Time Hoops", edition: "Game night", description: "A quick warmup before the opening tip.", tone: "purple" },
-  { id: "nba-history", sport: "NBA", title: "Hardwood Legends", edition: "Legends", description: "Championship language and iconic fundamentals.", tone: "blue" },
-  { id: "mlb-roundup", sport: "MLB", title: "September 29 Roundup", edition: "Sep 29", description: "A late-season baseball knowledge check.", tone: "orange" },
-  { id: "mlb-postseason", sport: "MLB", title: "Postseason Push", edition: "October", description: "Playoff terms, scoring, and diamond basics.", tone: "purple" },
-  { id: "mlb-classics", sport: "MLB", title: "Ballpark Classics", edition: "Legends", description: "Timeless rules and baseball vocabulary.", tone: "blue" },
-  { id: "nhl-weekly", sport: "NHL", title: "Weekly Faceoff", edition: "This week", description: "Rink rules, scoring, and hockey essentials.", tone: "blue" },
-  { id: "nhl-rivalry", sport: "NHL", title: "Rivalry Night", edition: "Game night", description: "Fast-paced trivia before the puck drops.", tone: "orange" },
-  { id: "nhl-cup", sport: "NHL", title: "Cup Classics", edition: "Legends", description: "Championship traditions and hockey terms.", tone: "purple" },
+  { id: "nfl-weekly", sport: "NFL", category: "roundup", title: "Weekly Huddle", edition: "Week 4", description: "Rules, positions, and Sunday essentials.", tone: "orange" },
+  { id: "nfl-gameday", sport: "NFL", category: "game", title: "Game Day Challenge", edition: "Sunday", description: "A fast pregame test for the whole room.", tone: "purple" },
+  { id: "nfl-history", sport: "NFL", category: "history", title: "Gridiron Classics", edition: "Legends", description: "Big-game history and football vocabulary.", tone: "blue" },
+  { id: "nba-weekly", sport: "NBA", category: "roundup", title: "Weekly Tipoff", edition: "This week", description: "Court rules, scoring, and basketball IQ.", tone: "orange" },
+  { id: "nba-gameday", sport: "NBA", category: "game", title: "Prime Time Hoops", edition: "Game night", description: "A quick warmup before the opening tip.", tone: "purple" },
+  { id: "nba-history", sport: "NBA", category: "history", title: "Hardwood Legends", edition: "Legends", description: "Championship language and iconic fundamentals.", tone: "blue" },
+  { id: "mlb-roundup", sport: "MLB", category: "roundup", title: "September 29 Roundup", edition: "Sep 29", description: "A late-season baseball knowledge check.", tone: "orange" },
+  { id: "mlb-postseason", sport: "MLB", category: "game", title: "Postseason Push", edition: "October", description: "Playoff terms, scoring, and diamond basics.", tone: "purple" },
+  { id: "mlb-classics", sport: "MLB", category: "history", title: "Ballpark Classics", edition: "Legends", description: "Timeless rules and baseball vocabulary.", tone: "blue" },
+  { id: "nhl-weekly", sport: "NHL", category: "roundup", title: "Weekly Faceoff", edition: "This week", description: "Rink rules, scoring, and hockey essentials.", tone: "blue" },
+  { id: "nhl-rivalry", sport: "NHL", category: "game", title: "Rivalry Night", edition: "Game night", description: "Fast-paced trivia before the puck drops.", tone: "orange" },
+  { id: "nhl-cup", sport: "NHL", category: "history", title: "Cup Classics", edition: "Legends", description: "Championship traditions and hockey terms.", tone: "purple" },
 ];
 
 let session = null;
@@ -25,7 +30,9 @@ let countdownTimer = null;
 let connectionStatus = "connected";
 let renderedPhase = null;
 let selectedSport = "MLB";
-let selectedPackId = null;
+let selectedCategory = "roundup";
+let selectedPackId = "mlb-roundup";
+let hostNameDraft = "";
 
 function escapeHtml(value) {
   return String(value)
@@ -88,7 +95,9 @@ function showHome(message = "") {
   clearInterval(countdownTimer);
   renderedPhase = null;
   const sportPacks = PACKS.filter((pack) => pack.sport === selectedSport);
-  const selectedPack = PACKS.find((pack) => pack.id === selectedPackId);
+  const sportCategories = [...new Set(sportPacks.map((pack) => pack.category))];
+  const categoryPacks = sportPacks.filter((pack) => pack.category === selectedCategory);
+  const selectedPack = PACKS.find((pack) => pack.id === selectedPackId) || categoryPacks[0] || sportPacks[0];
   app.innerHTML = page(`
     <section class="sports-hub">
       <div class="hub-intro">
@@ -125,7 +134,7 @@ function showHome(message = "") {
         ${sportPacks.map((pack, index) => `
           <button class="edition-chip ${pack.id === selectedPackId ? "active" : ""}" type="button" data-pack="${pack.id}">
             <span>${escapeHtml(pack.edition)}</span>
-            <strong>${index === 0 ? "Roundup" : index === 1 ? "Game" : "History"}</strong>
+            <strong>${escapeHtml(CATEGORY_LABELS[pack.category])}</strong>
           </button>`).join("")}
       </div>
 
@@ -148,23 +157,41 @@ function showHome(message = "") {
           </article>`).join("")}
       </div>
 
-      ${selectedPack ? `
-        <section class="card host-panel" id="host-panel">
+      <section class="card host-panel" id="host-panel">
           <div>
-            <p class="eyebrow">Selected · ${selectedPack.sport}</p>
-            <h2>${escapeHtml(selectedPack.title)}</h2>
-            <p class="waiting-note">Create a private room, share the code, and play this 10-question pack together.</p>
+            <p class="eyebrow">Create a private room</p>
+            <h2>Build your matchup</h2>
+            <p class="waiting-note">Choose the sport, category, and exact trivia pack. Then share the room code with up to seven friends.</p>
           </div>
           <form id="create-form" class="host-form">
-            <input type="hidden" name="packId" value="${selectedPack.id}" />
+            <div class="room-options" aria-label="Room trivia options">
+              <div class="field compact-field">
+                <label for="create-sport">Sport</label>
+                <select id="create-sport" name="sport">
+                  ${SPORTS.map((sport) => `<option value="${sport}" ${sport === selectedSport ? "selected" : ""}>${sport}</option>`).join("")}
+                </select>
+              </div>
+              <div class="field compact-field">
+                <label for="create-category">Category</label>
+                <select id="create-category" name="category">
+                  ${sportCategories.map((category) => `<option value="${category}" ${category === selectedCategory ? "selected" : ""}>${escapeHtml(CATEGORY_LABELS[category])}</option>`).join("")}
+                </select>
+              </div>
+              <div class="field compact-field">
+                <label for="create-pack">Quiz pack</label>
+                <select id="create-pack" name="packId">
+                  ${categoryPacks.map((pack) => `<option value="${pack.id}" ${pack.id === selectedPack.id ? "selected" : ""}>${escapeHtml(pack.title)}</option>`).join("")}
+                </select>
+              </div>
+            </div>
             <div class="field compact-field">
               <label for="create-name">Host display name</label>
-              <input id="create-name" name="name" maxlength="18" autocomplete="nickname" placeholder="Commissioner" required />
+              <input id="create-name" name="name" maxlength="18" autocomplete="nickname" placeholder="Commissioner" value="${escapeHtml(hostNameDraft)}" required />
             </div>
             <button class="button" type="submit">Create room</button>
             <p class="error" id="create-error">${escapeHtml(message)}</p>
           </form>
-        </section>` : ""}
+        </section>
     </section>
   `);
 
@@ -175,16 +202,40 @@ function showHome(message = "") {
   document.querySelectorAll("[data-sport]").forEach((button) => {
     button.addEventListener("click", () => {
       selectedSport = button.dataset.sport;
-      selectedPackId = null;
+      const firstPack = PACKS.find((pack) => pack.sport === selectedSport);
+      selectedCategory = firstPack.category;
+      selectedPackId = firstPack.id;
       showHome();
     });
   });
   document.querySelectorAll("[data-pack]").forEach((button) => {
     button.addEventListener("click", () => {
-      selectedPackId = button.dataset.pack;
+      const pack = PACKS.find((candidate) => candidate.id === button.dataset.pack);
+      selectedSport = pack.sport;
+      selectedCategory = pack.category;
+      selectedPackId = pack.id;
       showHome();
       requestAnimationFrame(() => document.querySelector("#host-panel")?.scrollIntoView({ behavior: "smooth", block: "center" }));
     });
+  });
+  document.querySelector("#create-sport").addEventListener("change", (event) => {
+    selectedSport = event.target.value;
+    const firstPack = PACKS.find((pack) => pack.sport === selectedSport);
+    selectedCategory = firstPack.category;
+    selectedPackId = firstPack.id;
+    showHome();
+  });
+  document.querySelector("#create-category").addEventListener("change", (event) => {
+    selectedCategory = event.target.value;
+    selectedPackId = PACKS.find((pack) => pack.sport === selectedSport && pack.category === selectedCategory).id;
+    showHome();
+  });
+  document.querySelector("#create-pack").addEventListener("change", (event) => {
+    selectedPackId = event.target.value;
+    showHome();
+  });
+  document.querySelector("#create-name").addEventListener("input", (event) => {
+    hostNameDraft = event.target.value;
   });
   document.querySelector("#create-form")?.addEventListener("submit", createRoom);
   document.querySelector("#join-form").addEventListener("submit", joinRoom);
@@ -195,6 +246,7 @@ async function createRoom(event) {
   const form = event.currentTarget;
   const button = form.querySelector("button");
   const error = form.querySelector(".error");
+  hostNameDraft = form.elements.name.value;
   button.disabled = true;
   button.textContent = "Creating…";
   error.textContent = "";

@@ -55,7 +55,8 @@ body {
 }
 
 button,
-input {
+input,
+select {
   font: inherit;
 }
 
@@ -64,7 +65,8 @@ button {
 }
 
 button:focus-visible,
-input:focus-visible {
+input:focus-visible,
+select:focus-visible {
   outline: 4px solid var(--gold);
   outline-offset: 3px;
 }
@@ -493,6 +495,27 @@ h3 {
   grid-template-columns: minmax(180px, 1fr) auto;
   gap: 12px;
   align-items: end;
+}
+
+.room-options {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  border-bottom: 2px solid #354285;
+  padding-bottom: 16px;
+}
+
+select {
+  width: 100%;
+  min-height: 48px;
+  border: 3px solid var(--night);
+  border-radius: 0;
+  padding: 10px 38px 10px 12px;
+  color: var(--cream);
+  background: #0e1437;
+  box-shadow: 3px 3px 0 var(--plum);
+  cursor: pointer;
 }
 
 .host-form .error {
@@ -1275,6 +1298,10 @@ input::placeholder {
   }
 
   .host-form {
+    grid-template-columns: 1fr;
+  }
+
+  .room-options {
     grid-template-columns: 1fr;
   }
 
